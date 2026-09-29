@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四色定理與鑲嵌密鋪實驗室 Four Color Theorem & Tessellation Lab</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Fira Code -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            touch-action: manipulation;
+        }
+        .font-mono-math {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Mathematical Grid Background Pattern */
+        .bg-math-grid {
+            background-color: #f8fafc;
+            background-image: 
+                linear-gradient(to right, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        /* Custom scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        /* Accordion transition style */
+        .accordion-content {
+            transition: max-height 0.25s ease-in-out, opacity 0.2s ease-in-out;
+            max-height: 500px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        .accordion-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin: 0 !important;
+        }
+    </style>
+</head>
+<body class="bg-math-grid text-slate-800 h-screen overflow-hidden flex flex-col selection:bg-slate-200 selection:text-slate-900">
+
+    <!-- Splash Screen Intro Overlay (∑ Opening Transition) -->
+    <div id="splash-screen" class="fixed inset-0 z-50 bg-slate-950 text-white flex flex-col items-center justify-center p-6 transition-all duration-700 ease-in-out">
+        <!-- Ambient Glow Backgrounds -->
+        <div class="absolute w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+        <div class="absolute w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col items-center text-center max-w-lg mx-auto space-y-6">
+            <!-- Animated Sigma Logo Icon Box -->
+            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/80 shadow-2xl flex items-center justify-center relative group hover:border-teal-500/50 transition duration-500 cursor-pointer" onclick="enterLaboratory()">
+                <div class="absolute inset-0 bg-teal-500/10 rounded-3xl blur-md group-hover:bg-teal-500/20 transition"></div>
+                <span class="text-6xl sm:text-7xl font-bold font-mono-math text-transparent bg-clip-text bg-gradient-to-tr from-teal-400 via-sky-300 to-amber-300 drop-shadow-md select-none transform transition group-hover:scale-110">
+                    ∑
+                </span>
+            </div>
+
+            <div class="space-y-2">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-100">
+                    四色定理與鑲嵌密鋪實驗室
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-400 font-medium tracking-wide">
+                    Four Color Theorem & Tessellation Interactive Lab
+                </p>
+                <div class="flex items-center justify-center space-x-2 pt-1">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono-math bg-teal-950 text-teal-400 border border-teal-800/60">Euler Planar Map</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono-math bg-sky-950 text-sky-400 border border-sky-800/60">Graph Coloring</span>
+                </div>
+            </div>
+
+            <!-- Enter Button -->
+            <button onclick="enterLaboratory()" class="mt-4 group relative inline-flex items-center justify-center px-8 py-3.5 font-bold text-slate-900 bg-gradient-to-r from-teal-400 via-sky-400 to-teal-300 rounded-xl shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-300">
+                <span class="flex items-center space-x-2 text-sm">
+                    <span>開始探索實驗室</span>
+                    <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                </span>
+            </button>
+            
+            <p class="text-[11px] text-slate-500">點擊按鈕進入幾何密鋪與色彩圖論測試區</p>
+        </div>
+    </div>
+
+    <!-- Top Header (Compact Fit) -->
+    <header class="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-2 sticky top-0 z-30 text-white shadow-md flex-shrink-0">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="reopenSplash()">
+                <div class="p-2 bg-slate-800 border border-slate-700 text-teal-400 rounded-lg shadow-inner flex items-center justify-center">
+                    <span class="text-lg font-bold font-mono-math leading-none">∑</span>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-base font-bold text-slate-100 tracking-tight leading-none">四色定理與鑲嵌密鋪實驗室</h1>
+                        <span class="text-[11px] text-teal-400 font-semibold font-mono-math hidden sm:inline">Four Color Lab</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-medium">Euler Planar Tessellation & Dynamic Snap Engine</p>
+                </div>
+            </div>
+
+            <!-- Top Quick Stats Bar -->
+            <div class="flex items-center gap-3 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700/80 text-xs font-medium text-slate-300">
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-slate-400"><i class="fa-solid fa-border-all text-xs"></i> 格子 Tiles:</span>
+                    <span id="stat-total-tiles" class="font-bold text-teal-400 font-mono-math">0</span>
+                </div>
+                <div class="h-3.5 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-slate-400"><i class="fa-solid fa-puzzle-piece text-xs"></i> 拼塊 Pieces:</span>
+                    <span id="stat-total-pieces" class="font-bold text-sky-400 font-mono-math">1</span>
+                </div>
+                <div class="h-3.5 w-px bg-slate-700"></div>
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-slate-400"><i class="fa-solid fa-link-slash text-xs"></i> 衝突 Conflicts:</span>
+                    <span id="stat-conflicts" class="font-extrabold text-rose-400 font-mono-math">0</span>
+                </div>
+                <div class="h-3.5 w-px bg-slate-700 hidden sm:block"></div>
+                <button onclick="exportCanvasImage()" class="hidden sm:flex bg-teal-600 hover:bg-teal-500 text-white font-semibold px-2.5 py-1 rounded-lg transition shadow-sm items-center space-x-1 text-xs">
+                    <i class="fa-solid fa-download"></i>
+                    <span>匯出 PNG</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Viewport (No Page Scroll) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-2 sm:p-3 flex flex-col md:flex-row gap-3 min-h-0 overflow-hidden relative">
+        
+        <!-- Left Collapsible Sidebar: Controls & Settings -->
+        <aside id="sidebar-panel" class="w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all duration-300 z-20">
+            
+            <!-- Sidebar Header & Toggle Collapsible -->
+            <div class="bg-slate-900 text-white px-3.5 py-2.5 flex items-center justify-between flex-shrink-0 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-sliders text-teal-400 text-sm"></i>
+                    <span class="text-xs font-bold tracking-wide uppercase">可收納控制面板 Control Panel</span>
+                </div>
+                <button onclick="toggleSidebarCollapse()" title="收納/展開面板 Toggle Drawer" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-1.5 rounded-lg text-xs transition">
+                    <i id="sidebar-toggle-icon" class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <!-- Scrollable Content Box for Controls -->
+            <div id="sidebar-content" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+                
+                <!-- Mode Switcher Tabs Card -->
+                <div class="bg-slate-100 p-1 rounded-xl border border-slate-200 grid grid-cols-2 gap-1 flex-shrink-0">
+                    <button id="tab-mode-paint" onclick="setAppMode('paint')" class="py-2 px-2 rounded-lg font-semibold text-xs transition flex items-center justify-center space-x-1.5 bg-slate-900 text-teal-400 shadow-sm">
+                        <i class="fa-solid fa-paintbrush"></i>
+                        <span>🎨 塗色 Paint</span>
+                    </button>
+                    <button id="tab-mode-puzzle" onclick="setAppMode('puzzle')" class="py-2 px-2 rounded-lg font-semibold text-xs transition flex items-center justify-center space-x-1.5 text-slate-700 hover:bg-slate-200">
+                        <i class="fa-solid fa-scissors"></i>
+                        <span>✂️ 拆解 Puzzle</span>
+                    </button>
+                </div>
+
+                <!-- Accordion 1: Shape & Palette (Expanded by default) -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <button onclick="toggleAccordion('acc-shape-palette', 'acc-icon-1')" class="w-full bg-slate-50 hover:bg-slate-100 px-3 py-2 text-xs font-bold text-slate-800 flex items-center justify-between border-b border-slate-100 transition">
+                        <span class="flex items-center space-x-2">
+                            <i class="fa-solid fa-shapes text-teal-600"></i>
+                            <span>1. 密鋪形狀與顏料 Palette</span>
+                        </span>
+                        <i id="acc-icon-1" class="fa-solid fa-chevron-up text-slate-400 text-xs"></i>
+                    </button>
+                    
+                    <div id="acc-shape-palette" class="accordion-content p-3 space-y-3">
+                        <!-- Shape Selector -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1.5">選擇鑲嵌幾何形狀 Select Shape</label>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button id="btn-shape-square" onclick="setShape('square')" class="shape-btn py-2 px-1 rounded-lg border-2 border-slate-900 bg-slate-900 text-teal-400 font-semibold text-xs transition flex flex-col items-center justify-center">
+                                    <i class="fa-solid fa-square text-xs mb-0.5"></i>
+                                    <span>正方形</span>
+                                </button>
+                                <button id="btn-shape-triangle" onclick="setShape('triangle')" class="shape-btn py-2 px-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs transition flex flex-col items-center justify-center">
+                                    <i class="fa-solid fa-play -rotate-90 text-xs mb-0.5 text-slate-500"></i>
+                                    <span>三角形</span>
+                                </button>
+                                <button id="btn-shape-hexagon" onclick="setShape('hexagon')" class="shape-btn py-2 px-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs transition flex flex-col items-center justify-center">
+                                    <i class="fa-solid fa-cube text-xs mb-0.5 text-slate-500"></i>
+                                    <span>六邊形</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Grid Dimension Slider -->
+                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <label id="grid-label" for="grid-size" class="text-[11px] font-semibold text-slate-700">網格規格 Grid Dimension</label>
+                                <span id="grid-size-val" class="text-[11px] font-bold font-mono-math px-1.5 py-0.5 rounded bg-slate-200 text-slate-800">3 x 3</span>
+                            </div>
+                            <input id="grid-size" type="range" min="2" max="12" value="3" step="1" oninput="updateGridSize(this.value)" class="w-full accent-slate-800 bg-slate-200 rounded-lg cursor-pointer h-1.5">
+                            <div id="grid-slider-legend" class="flex justify-between text-[9px] font-mono-math text-slate-400">
+                                <span>2 x 2</span>
+                                <span>3 x 3</span>
+                                <span>12 x 12</span>
+                            </div>
+                        </div>
+
+                        <!-- Color Limits -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1.5">顏色上限 Color Limit</label>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button id="btn-num-2" onclick="setColorCount(2)" class="num-color-btn py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition">2 色</button>
+                                <button id="btn-num-3" onclick="setColorCount(3)" class="num-color-btn py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition">3 色</button>
+                                <button id="btn-num-4" onclick="setColorCount(4)" class="num-color-btn py-1.5 text-xs font-semibold rounded-lg border-2 border-slate-900 bg-slate-900 text-teal-400 transition">4 色</button>
+                            </div>
+                        </div>
+
+                        <!-- Palette Brush -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1.5">選擇畫筆 Brush</label>
+                            <div class="flex items-center gap-2" id="palette-container">
+                                <!-- Colors injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 2: Slicing & Snap Tools -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <button onclick="toggleAccordion('acc-slice-snap', 'acc-icon-2')" class="w-full bg-slate-50 hover:bg-slate-100 px-3 py-2 text-xs font-bold text-slate-800 flex items-center justify-between border-b border-slate-100 transition">
+                        <span class="flex items-center space-x-2">
+                            <i class="fa-solid fa-puzzle-piece text-sky-600"></i>
+                            <span>2. 切割與磁吸對齊 Slicing & Snap</span>
+                        </span>
+                        <i id="acc-icon-2" class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                    </button>
+                    
+                    <div id="acc-slice-snap" class="accordion-content collapsed p-3 space-y-2.5">
+                        <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200">
+                            <span class="text-xs font-semibold text-slate-700 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-magnet text-amber-500"></i>
+                                <span>磁吸力 Magnetic Snap</span>
+                            </span>
+                            <button id="btn-toggle-snap" onclick="toggleSnapAssist()" class="text-xs px-2 py-0.5 font-semibold rounded-md bg-teal-100 text-teal-800 border border-teal-200">
+                                ON (已開啟)
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <button onclick="cutSelectedTilesIntoPiece()" class="py-2 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-teal-400 text-xs font-semibold transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-scissors"></i>
+                                <span>切下選取格</span>
+                            </button>
+                            <button onclick="randomSplitGrid()" class="py-2 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-cubes"></i>
+                                <span>隨機拆解</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button onclick="rotateActivePiece(-1)" class="py-1.5 px-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>逆時針</span>
+                            </button>
+                            <button onclick="rotateActivePiece(1)" class="py-1.5 px-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-rotate-right"></i>
+                                <span>順時針</span>
+                            </button>
+                            <button onclick="resetAllPiecesToGrid()" class="py-1.5 px-1 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-semibold transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-arrows-to-dot"></i>
+                                <span>重置</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 3: Conflicts & Solver -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <button onclick="toggleAccordion('acc-conflicts-solver', 'acc-icon-3')" class="w-full bg-slate-50 hover:bg-slate-100 px-3 py-2 text-xs font-bold text-slate-800 flex items-center justify-between border-b border-slate-100 transition">
+                        <span class="flex items-center space-x-2">
+                            <i class="fa-solid fa-chart-pie text-rose-600"></i>
+                            <span>3. 衝突統計與自動解答 Solver</span>
+                        </span>
+                        <i id="acc-icon-3" class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                    </button>
+                    
+                    <div id="acc-conflicts-solver" class="accordion-content collapsed p-3 space-y-2.5">
+                        <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-200 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-600">重疊衝突邊 Conflicts:</span>
+                            <span id="conflict-count" class="font-extrabold text-xl font-mono-math text-rose-600">0</span>
+                        </div>
+                        <div id="status-badge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-teal-100 text-teal-800 border border-teal-200 text-center">
+                            無衝突 OK
+                        </div>
+                        <p id="conflict-desc" class="text-[11px] text-slate-500 leading-tight">
+                            相鄰格子顏色相同即算 1 次衝突。
+                        </p>
+
+                        <div class="grid grid-cols-2 gap-1.5 pt-1">
+                            <button onclick="randomFillColors()" class="py-2 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-dice"></i>
+                                <span>隨機填色</span>
+                            </button>
+                            <button onclick="solveFourColor()" class="py-2 px-2 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold transition shadow-sm flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                                <span>自動求解</span>
+                            </button>
+                            <button onclick="clearColors()" class="col-span-2 py-1.5 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-semibold transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>清除著色 Clear</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Right Viewport-Fitting Canvas Area -->
+        <section class="flex-1 flex flex-col min-h-0 min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden p-2 sm:p-3">
+            
+            <!-- Canvas Floating Toolbar Overlay -->
+            <div class="flex justify-between items-center z-10 gap-2 mb-2 flex-wrap flex-shrink-0">
+                <div class="flex items-center space-x-2">
+                    <button id="sidebar-expand-btn" onclick="toggleSidebarCollapse()" class="hidden md:flex bg-slate-900 text-teal-400 hover:bg-slate-800 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition items-center space-x-1.5 shadow-sm">
+                        <i class="fa-solid fa-bars"></i>
+                        <span>展開選單</span>
+                    </button>
+                    <span id="current-tool-indicator" class="bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-paintbrush text-slate-800"></i>
+                        <span>當前: 塗色 Paint</span>
+                    </span>
+                </div>
+
+                <div class="flex items-center space-x-1.5">
+                    <button onclick="exportCanvasImage()" class="bg-slate-900 hover:bg-slate-800 text-teal-400 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition shadow-sm flex items-center space-x-1">
+                        <i class="fa-solid fa-file-image"></i>
+                        <span>匯出 PNG</span>
+                    </button>
+                    <button id="btn-toggle-ring-labels" onclick="toggleRingLabels()" class="hidden bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium px-2 py-1.5 rounded-lg transition items-center space-x-1">
+                        <i id="toggle-ring-icon" class="fa-solid fa-hashtag text-amber-500"></i>
+                        <span id="toggle-ring-text" class="hidden sm:inline">圈數: ON</span>
+                    </button>
+                    <button onclick="toggleConflictHighlight()" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium px-2 py-1.5 rounded-lg transition flex items-center space-x-1">
+                        <i id="toggle-highlight-icon" class="fa-solid fa-eye text-teal-600"></i>
+                        <span id="toggle-highlight-text" class="hidden sm:inline">高亮: ON</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Floating Slicing Action Bar -->
+            <div id="floating-cut-bar" class="hidden absolute top-12 left-1/2 -translate-x-1/2 z-20 bg-slate-900 text-white px-3.5 py-1.5 rounded-xl shadow-xl border border-slate-700 flex items-center space-x-2 transition-all">
+                <span class="text-xs font-semibold">
+                    <i class="fa-solid fa-scissors text-teal-400 mr-1"></i>已選 <strong id="selected-count-badge" class="font-mono-math text-teal-400">0</strong> 格
+                </span>
+                <button onclick="cutSelectedTilesIntoPiece()" class="bg-teal-500 hover:bg-teal-400 text-slate-950 px-2.5 py-0.5 rounded-lg text-xs font-bold transition">
+                    ✂️ 分割 Cut
+                </button>
+                <button onclick="clearSelectedTiles()" class="text-slate-400 hover:text-white text-xs px-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Responsive Auto-Fit Canvas Container (Zero Page Scroll) -->
+            <div id="canvas-container" class="flex-1 w-full h-full min-h-0 min-w-0 flex items-center justify-center relative overflow-hidden bg-slate-50/60 rounded-xl border border-slate-200/80">
+                <canvas id="tessellation-canvas" class="cursor-pointer rounded-xl shadow-inner"></canvas>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // Refined Palette Definitions (Sophisticated, elegant color tones)
+        const PALETTE_COLORS = [
+            { id: 0, name: "湛藍 Cerulean", hex: "#0284c7", stroke: "#0369a1" },
+            { id: 1, name: "珊瑚紅 Terracotta", hex: "#e11d48", stroke: "#be123c" },
+            { id: 2, name: "琥珀黃 Warm Gold", hex: "#d97706", stroke: "#b45309" },
+            { id: 3, name: "翡翠綠 Sage Emerald", hex: "#059669", stroke: "#047857" }
+        ];
+        const UNCOLORED = null;
+        const UNCOLORED_FILL = "#ffffff";
+        const GRID_STROKE = "#475569";
+
+        // App States
+        let appMode = 'paint';       // 'paint' or 'puzzle'
+        let currentShape = 'square'; // 'square', 'triangle', 'hexagon'
+        let squareSize = 3;         // 2 to 12
+        let triangleSize = 3;       // 2 to 10
+        let hexagonRings = 3;       // 0 to 6 rings
+        let numColorsAllowed = 4;   // 2, 3, or 4
+        let activeColorIndex = 0;   // 0..numColorsAllowed-1 or 'eraser'
+        let showConflictHighlight = true;
+        let showRingLabels = true;
+        let snapAssistEnabled = true;
+        let sidebarCollapsed = false;
+
+        // Geometric Pieces and Tiles Structure
+        let pieces = [];
+        let tiles = [];             
+        let activePieceId = null;   
+        let selectedTileIds = new Set(); 
+
+        let conflicts = [];         
+        let activeSnaps = [];       
+
+        // Drag state
+        let isDraggingPiece = false;
+        let dragStartPos = { x: 0, y: 0 };
+        let pieceStartOffset = { x: 0, y: 0 };
+        let hoveredTileId = null;
+
+        // Canvas Context
+        const canvas = document.getElementById('tessellation-canvas');
+        const ctx = canvas.getContext('2d');
+        const canvasContainer = document.getElementById('canvas-container');
+
+        window.addEventListener('load', () => {
+            setupPaletteUI();
+            updateSliderConfig();
+            resizeCanvasAndRebuild();
+            
+            // Mouse & Touch listeners
+            canvas.addEventListener('mousedown', handlePointerDown);
+            canvas.addEventListener('mousemove', handlePointerMove);
+            window.addEventListener('mouseup', handlePointerUp);
+
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            window.addEventListener('touchend', handlePointerUp);
+
+            window.addEventListener('resize', resizeCanvasAndRebuild);
+
+            // Resize Observer to adjust canvas when panel expands/collapses
+            if (window.ResizeObserver) {
+                new ResizeObserver(() => resizeCanvasAndRebuild()).observe(canvasContainer);
+            }
+        });
+
+        function toggleAccordion(contentId, iconId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                icon.className = "fa-solid fa-chevron-up text-slate-400 text-xs";
+            } else {
+                content.classList.add('collapsed');
+                icon.className = "fa-solid fa-chevron-down text-slate-400 text-xs";
+            }
+        }
+
+        function toggleSidebarCollapse() {
+            sidebarCollapsed = !sidebarCollapsed;
+            const sidebar = document.getElementById('sidebar-panel');
+            const expandBtn = document.getElementById('sidebar-expand-btn');
+
+            if (sidebarCollapsed) {
+                sidebar.classList.add('hidden');
+                expandBtn.classList.remove('hidden');
+            } else {
+                sidebar.classList.remove('hidden');
+                expandBtn.classList.add('hidden');
+            }
+            setTimeout(resizeCanvasAndRebuild, 50);
+        }
+
+        function setAppMode(mode) {
+            appMode = mode;
+            const btnPaint = document.getElementById('tab-mode-paint');
+            const btnPuzzle = document.getElementById('tab-mode-puzzle');
+
+            if (mode === 'paint') {
+                btnPaint.className = "py-2 px-2 rounded-lg font-semibold text-xs transition flex items-center justify-center space-x-1.5 bg-slate-900 text-teal-400 shadow-sm";
+                btnPuzzle.className = "py-2 px-2 rounded-lg font-semibold text-xs transition flex items-center justify-center space-x-1.5 text-slate-700 hover:bg-slate-200";
+            } else {
+                btnPuzzle.className = "py-2 px-2 rounded-lg font-semibold text-xs transition flex items-center justify-center space-x-1.5 bg-slate-900 text-teal-400 shadow-sm";
+                btnPaint.className = "py-2 px-2 rounded-lg font-semibold text-xs transition flex items-center justify-center space-x-1.5 text-slate-700 hover:bg-slate-200";
+            }
+
+            selectedTileIds.clear();
+            updateFloatingCutBar();
+            updateToolIndicator();
+            render();
+        }
+
+        function toggleSnapAssist() {
+            snapAssistEnabled = !snapAssistEnabled;
+            const btn = document.getElementById('btn-toggle-snap');
+            if (snapAssistEnabled) {
+                btn.className = "text-xs px-2.5 py-1 font-semibold rounded-lg bg-teal-100 text-teal-800 border border-teal-200";
+                btn.innerText = "ON (已開啟)";
+            } else {
+                btn.className = "text-xs px-2.5 py-1 font-semibold rounded-lg bg-slate-100 text-slate-600 border border-slate-200";
+                btn.innerText = "OFF (已關閉)";
+            }
+        }
+
+        function toggleRingLabels() {
+            showRingLabels = !showRingLabels;
+            const textSpan = document.getElementById('toggle-ring-text');
+            if (textSpan) textSpan.innerText = `圈數: ${showRingLabels ? 'ON' : 'OFF'}`;
+            render();
+        }
+
+        function toggleConflictHighlight() {
+            showConflictHighlight = !showConflictHighlight;
+            const textSpan = document.getElementById('toggle-highlight-text');
+            if (textSpan) textSpan.innerText = `高亮: ${showConflictHighlight ? 'ON' : 'OFF'}`;
+            render();
+        }
+
+        function setupPaletteUI() {
+            const container = document.getElementById('palette-container');
+            container.innerHTML = '';
+
+            for (let i = 0; i < numColorsAllowed; i++) {
+                const c = PALETTE_COLORS[i];
+                const btn = document.createElement('button');
+                btn.className = `palette-btn relative flex items-center justify-center w-8 h-8 rounded-lg transition-all shadow-sm ${activeColorIndex === i ? 'ring-2 ring-slate-900 scale-110 z-10' : 'hover:scale-105 opacity-90'}`;
+                btn.style.backgroundColor = c.hex;
+                btn.title = `${c.name} (Color ${i+1})`;
+                btn.onclick = () => setActiveColor(i);
+
+                if (activeColorIndex === i) {
+                    btn.innerHTML = `<i class="fa-solid fa-check text-white text-xs font-bold drop-shadow"></i>`;
+                }
+
+                container.appendChild(btn);
+            }
+
+            // Eraser Button
+            const eraserBtn = document.createElement('button');
+            eraserBtn.className = `palette-btn relative flex items-center justify-center w-8 h-8 rounded-lg border border-slate-300 bg-white text-slate-700 transition-all shadow-sm ${activeColorIndex === 'eraser' ? 'ring-2 ring-slate-900 scale-110 z-10 bg-slate-100' : 'hover:scale-105 opacity-90'}`;
+            eraserBtn.title = '橡皮擦 Eraser';
+            eraserBtn.onclick = () => setActiveColor('eraser');
+            eraserBtn.innerHTML = `<i class="fa-solid fa-eraser text-xs"></i>`;
+            container.appendChild(eraserBtn);
+
+            updateToolIndicator();
+        }
+
+        function setActiveColor(index) {
+            activeColorIndex = index;
+            setupPaletteUI();
+        }
+
+        function updateToolIndicator() {
+            const indicator = document.getElementById('current-tool-indicator');
+            if (appMode === 'puzzle') {
+                indicator.innerHTML = `<i class="fa-solid fa-scissors text-slate-800"></i><span>當前模式: 拆解與拼圖組裝 Puzzle Mode</span>`;
+            } else if (activeColorIndex === 'eraser') {
+                indicator.innerHTML = `<i class="fa-solid fa-eraser text-slate-600"></i><span>當前畫筆: 橡皮擦 Eraser</span>`;
+            } else {
+                const color = PALETTE_COLORS[activeColorIndex];
+                indicator.innerHTML = `<span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color:${color.hex}"></span><span>當前畫筆: 顏色 ${activeColorIndex + 1} (${color.name})</span>`;
+            }
+        }
+
+        function setShape(shape) {
+            currentShape = shape;
+            document.querySelectorAll('.shape-btn').forEach(b => {
+                b.className = 'shape-btn py-2 px-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs transition flex flex-col items-center justify-center';
+            });
+            const activeBtn = document.getElementById(`btn-shape-${shape}`);
+            if (activeBtn) {
+                activeBtn.className = 'shape-btn py-2 px-1 rounded-lg border-2 border-slate-900 bg-slate-900 text-teal-400 font-semibold text-xs transition flex flex-col items-center justify-center';
+            }
+
+            const ringBtn = document.getElementById('btn-toggle-ring-labels');
+            if (currentShape === 'hexagon') {
+                ringBtn.classList.remove('hidden');
+                ringBtn.classList.add('flex');
+            } else {
+                ringBtn.classList.add('hidden');
+                ringBtn.classList.remove('flex');
+            }
+
+            updateSliderConfig();
+            rebuildGrid();
+        }
+
+        function updateSliderConfig() {
+            const slider = document.getElementById('grid-size');
+            const label = document.getElementById('grid-label');
+            const valDisplay = document.getElementById('grid-size-val');
+            const legend = document.getElementById('grid-slider-legend');
+
+            if (currentShape === 'square') {
+                label.innerText = '網格規格 Square Grid (N x N)';
+                slider.min = 2;
+                slider.max = 12;
+                slider.value = squareSize;
+                valDisplay.innerText = `${squareSize} x ${squareSize}`;
+                legend.innerHTML = `<span>2 x 2</span><span>6 x 6</span><span>12 x 12</span>`;
+            } else if (currentShape === 'triangle') {
+                label.innerText = '三角形層數 Triangle Level';
+                slider.min = 2;
+                slider.max = 10;
+                slider.value = triangleSize;
+                valDisplay.innerText = `Level ${triangleSize}`;
+                legend.innerHTML = `<span>Level 2</span><span>Level 5</span><span>Level 10</span>`;
+            } else if (currentShape === 'hexagon') {
+                label.innerText = '六邊形同心圈數 Hexagon Rings';
+                slider.min = 0;
+                slider.max = 6;
+                slider.value = hexagonRings;
+                valDisplay.innerText = `${hexagonRings} Rings (圈)`;
+                legend.innerHTML = `<span>0 圈</span><span>3 圈</span><span>6 圈</span>`;
+            }
+        }
+
+        function updateGridSize(val) {
+            const numVal = parseInt(val, 10);
+            if (currentShape === 'square') {
+                squareSize = numVal;
+            } else if (currentShape === 'triangle') {
+                triangleSize = numVal;
+            } else if (currentShape === 'hexagon') {
+                hexagonRings = numVal;
+            }
+            document.getElementById('grid-size-val').innerText = currentShape === 'square' ? `${numVal} x ${numVal}` : (currentShape === 'triangle' ? `Level ${numVal}` : `${numVal} Rings (圈)`);
+            rebuildGrid();
+        }
+
+        function setColorCount(count) {
+            numColorsAllowed = count;
+            document.querySelectorAll('.num-color-btn').forEach(b => {
+                b.className = 'num-color-btn py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition';
+            });
+            const activeBtn = document.getElementById(`btn-num-${count}`);
+            if (activeBtn) {
+                activeBtn.className = 'num-color-btn py-1.5 text-xs font-semibold rounded-lg border-2 border-slate-900 bg-slate-900 text-teal-400 transition';
+            }
+            if (activeColorIndex !== 'eraser' && activeColorIndex >= count) {
+                activeColorIndex = 0;
+            }
+            setupPaletteUI();
+            checkDynamicConflicts();
+            render();
+        }
+
+        function resizeCanvasAndRebuild() {
+            const rect = canvasContainer.getBoundingClientRect();
+            const availW = rect.width - 16;
+            const availH = rect.height - 16;
+            const minDim = Math.max(120, Math.min(availW, availH));
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.width = minDim * dpr;
+            canvas.height = minDim * dpr;
+            canvas.style.width = `${minDim}px`;
+            canvas.style.height = `${minDim}px`;
+
+            ctx.scale(dpr, dpr);
+            rebuildGrid();
+        }
+
+        function rebuildGrid() {
+            tiles = [];
+            pieces = [];
+            selectedTileIds.clear();
+            updateFloatingCutBar();
+
+            const displaySize = parseFloat(canvas.style.width);
+            const padding = 20; 
+            const availSize = displaySize - padding * 2;
+
+            if (currentShape === 'square') {
+                buildSquareGrid(availSize, padding);
+            } else if (currentShape === 'triangle') {
+                buildTriangleSubdivisionGrid(availSize, padding);
+            } else if (currentShape === 'hexagon') {
+                buildHexagonRingGrid(availSize, padding);
+            }
+
+            const mainPiece = {
+                id: 0,
+                tiles: [...tiles],
+                x: 0,
+                y: 0,
+                rotation: 0
+            };
+            pieces.push(mainPiece);
+            activePieceId = 0;
+
+            checkDynamicConflicts();
+            render();
+
+            document.getElementById('stat-total-tiles').innerText = tiles.length;
+            document.getElementById('stat-total-pieces').innerText = pieces.length;
+        }
+
+        // 1. Square Grid N x N
+        function buildSquareGrid(availSize, padding) {
+            const N = squareSize;
+            const canvasWidth = parseFloat(canvas.style.width);
+            const cellSize = availSize / N;
+            const startX = (canvasWidth - availSize) / 2;
+            const startY = (canvasWidth - availSize) / 2;
+
+            let id = 0;
+            for (let r = 0; r < N; r++) {
+                for (let c = 0; c < N; c++) {
+                    const x = startX + c * cellSize;
+                    const y = startY + r * cellSize;
+                    const pts = [
+                        { x: x, y: y },
+                        { x: x + cellSize, y: y },
+                        { x: x + cellSize, y: y + cellSize },
+                        { x: x, y: y + cellSize }
+                    ];
+                    tiles.push({
+                        id: id++,
+                        label: `${r+1},${c+1}`,
+                        ring: Math.max(Math.abs(r - Math.floor(N/2)), Math.abs(c - Math.floor(N/2))),
+                        center: { x: x + cellSize / 2, y: y + cellSize / 2 },
+                        localPoints: pts,
+                        color: UNCOLORED
+                    });
+                }
+            }
+        }
+
+        // 2. Triangle Subdivision Grid N x N
+        function buildTriangleSubdivisionGrid(availSize, padding) {
+            const N = triangleSize;
+            const H_ratio = Math.sqrt(3) / 2;
+            let L = availSize;
+            let H = L * H_ratio;
+
+            if (H > availSize) {
+                H = availSize;
+                L = H / H_ratio;
+            }
+
+            const canvasWidth = parseFloat(canvas.style.width);
+            const Xc = canvasWidth / 2;
+            const Ytop = padding + (availSize - H) / 2;
+
+            const unitW = L / N;
+            const unitH = H / N;
+
+            let id = 0;
+
+            for (let r = 0; r < N; r++) {
+                const y1 = Ytop + r * unitH;
+                const y2 = Ytop + (r + 1) * unitH;
+
+                const topLx = Xc - (r * unitW) / 2;
+                const botLx = Xc - ((r + 1) * unitW) / 2;
+
+                const numTriangles = 2 * r + 1;
+
+                for (let k = 0; k < numTriangles; k++) {
+                    const pts = [];
+                    let cx = 0, cy = 0;
+
+                    if (k % 2 === 0) {
+                        const idx = k / 2;
+                        const topV = { x: topLx + idx * unitW, y: y1 };
+                        const botL = { x: botLx + idx * unitW, y: y2 };
+                        const botR = { x: botLx + (idx + 1) * unitW, y: y2 };
+
+                        pts.push(topV, botL, botR);
+                        cx = (topV.x + botL.x + botR.x) / 3;
+                        cy = (topV.y + botL.y + botR.y) / 3;
+                    } else {
+                        const idx = (k - 1) / 2;
+                        const topL = { x: topLx + idx * unitW, y: y1 };
+                        const topR = { x: topLx + (idx + 1) * unitW, y: y1 };
+                        const botV = { x: botLx + (idx + 1) * unitW, y: y2 };
+
+                        pts.push(topL, topR, botV);
+                        cx = (topL.x + topR.x + botV.x) / 3;
+                        cy = (topL.y + topR.y + botV.y) / 3;
+                    }
+
+                    tiles.push({
+                        id: id++,
+                        label: `${r+1}`,
+                        ring: r,
+                        center: { x: cx, y: cy },
+                        localPoints: pts,
+                        color: UNCOLORED
+                    });
+                }
+            }
+        }
+
+        // 3. Hexagon Concentric Ring Grid
+        function buildHexagonRingGrid(availSize, padding) {
+            const rings = hexagonRings;
+            const canvasWidth = parseFloat(canvas.style.width);
+            const Xc = canvasWidth / 2;
+            const Yc = canvasWidth / 2;
+
+            const R = (availSize / 2) / Math.max(1, (1.85 * rings + 1.15));
+            const sqrt3 = Math.sqrt(3);
+
+            let id = 0;
+
+            for (let q = -rings; q <= rings; q++) {
+                const r1 = Math.max(-rings, -q - rings);
+                const r2 = Math.min(rings, -q + rings);
+
+                for (let r = r1; r <= r2; r++) {
+                    const s = -q - r;
+                    const ringDist = Math.max(Math.abs(q), Math.abs(r), Math.abs(s));
+
+                    const cx = Xc + R * 1.5 * q;
+                    const cy = Yc + R * sqrt3 * (r + q / 2);
+
+                    const pts = [];
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (Math.PI / 180) * (60 * i);
+                        pts.push({
+                            x: cx + R * Math.cos(angle),
+                            y: cy + R * Math.sin(angle)
+                        });
+                    }
+
+                    tiles.push({
+                        id: id++,
+                        ring: ringDist,
+                        label: `${ringDist}`,
+                        center: { x: cx, y: cy },
+                        localPoints: pts,
+                        color: UNCOLORED
+                    });
+                }
+            }
+        }
+
+        function clearSelectedTiles() {
+            selectedTileIds.clear();
+            updateFloatingCutBar();
+            render();
+        }
+
+        function updateFloatingCutBar() {
+            const bar = document.getElementById('floating-cut-bar');
+            const countBadge = document.getElementById('selected-count-badge');
+            if (selectedTileIds.size > 0 && appMode === 'puzzle') {
+                bar.classList.remove('hidden');
+                countBadge.innerText = selectedTileIds.size;
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+
+        function getTileWorldGeometry(tile, piece) {
+            const rad = (piece.rotation * Math.PI) / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            const anchor = piece.tiles[0].center; 
+
+            const worldPts = tile.localPoints.map(pt => {
+                const dx = pt.x - anchor.x;
+                const dy = pt.y - anchor.y;
+                const rx = dx * cos - dy * sin;
+                const ry = dx * sin + dy * cos;
+                return {
+                    x: anchor.x + piece.x + rx,
+                    y: anchor.y + piece.y + ry
+                };
+            });
+
+            const cdx = tile.center.x - anchor.x;
+            const cdy = tile.center.y - anchor.y;
+            const worldCenter = {
+                x: anchor.x + piece.x + (cdx * cos - cdy * sin),
+                y: anchor.y + piece.y + (cdx * sin + cdy * cos)
+            };
+
+            return { points: worldPts, center: worldCenter };
+        }
+
+        function checkDynamicConflicts() {
+            conflicts = [];
+            const eps = 1.8;
+            let conflictCount = 0;
+
+            const tileWorldMap = new Map();
+            for (let p of pieces) {
+                for (let t of p.tiles) {
+                    tileWorldMap.set(t.id, {
+                        tile: t,
+                        piece: p,
+                        worldGeom: getTileWorldGeometry(t, p)
+                    });
+                }
+            }
+
+            const tileList = Array.from(tileWorldMap.values());
+
+            function pointsClose(p1, p2) {
+                const dx = p1.x - p2.x;
+                const dy = p1.y - p2.y;
+                return (dx * dx + dy * dy) < (eps * eps);
+            }
+
+            for (let i = 0; i < tileList.length; i++) {
+                for (let j = i + 1; j < tileList.length; j++) {
+                    const item1 = tileList[i];
+                    const item2 = tileList[j];
+
+                    if (item1.tile.color === UNCOLORED || item2.tile.color === UNCOLORED) continue;
+
+                    const sharedPts = [];
+                    for (let p1 of item1.worldGeom.points) {
+                        for (let p2 of item2.worldGeom.points) {
+                            if (pointsClose(p1, p2)) {
+                                sharedPts.push(p1);
+                            }
+                        }
+                    }
+
+                    if (sharedPts.length >= 2) {
+                        if (item1.tile.color === item2.tile.color) {
+                            conflicts.push({
+                                t1: item1.tile.id,
+                                t2: item2.tile.id,
+                                sharedPoints: sharedPts
+                            });
+                            conflictCount++;
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('stat-conflicts').innerText = conflictCount;
+            document.getElementById('conflict-count').innerText = conflictCount;
+
+            const statusBadge = document.getElementById('status-badge');
+            const conflictDesc = document.getElementById('conflict-desc');
+
+            if (conflictCount === 0) {
+                statusBadge.className = "px-2.5 py-0.5 text-xs font-semibold rounded-full bg-teal-100 text-teal-800 border border-teal-200 text-center";
+                statusBadge.innerText = "無衝突 OK";
+                conflictDesc.innerHTML = `<span class="text-teal-700 font-semibold"><i class="fa-solid fa-circle-check"></i> 符合四色定理規範 (Complies with Four-Color Theorem)</span> 當前無相同顏色的重疊相鄰邊。`;
+            } else {
+                statusBadge.className = "px-2.5 py-0.5 text-xs font-semibold rounded-full bg-rose-100 text-rose-800 border border-rose-200 animate-pulse text-center";
+                statusBadge.innerText = "存在衝突 Conflict";
+                conflictDesc.innerHTML = `<span class="text-rose-700 font-semibold"><i class="fa-solid fa-triangle-exclamation"></i> 發現 ${conflictCount} 處相鄰著色衝突 (${conflictCount} edge conflicts)</span> 請調整顏色或位置。`;
+            }
+        }
+
+        function calculateMagneticSnap(draggingPiece) {
+            activeSnaps = [];
+            if (!snapAssistEnabled) return { snapX: 0, snapY: 0 };
+
+            const snapThreshold = 18;
+            let minDistance = snapThreshold;
+            let bestDelta = { x: 0, y: 0 };
+            let foundSnap = false;
+
+            const dragGeoms = draggingPiece.tiles.map(t => ({
+                tile: t,
+                geom: getTileWorldGeometry(t, draggingPiece)
+            }));
+
+            const otherGeoms = [];
+            for (let p of pieces) {
+                if (p.id === draggingPiece.id) continue;
+                for (let t of p.tiles) {
+                    otherGeoms.push(getTileWorldGeometry(t, p));
+                }
+            }
+
+            for (let dItem of dragGeoms) {
+                const dPts = dItem.geom.points;
+                for (let i = 0; i < dPts.length; i++) {
+                    const d1 = dPts[i];
+                    const d2 = dPts[(i + 1) % dPts.length];
+
+                    for (let oGeom of otherGeoms) {
+                        const oPts = oGeom.points;
+                        for (let j = 0; j < oPts.length; j++) {
+                            const o1 = oPts[j];
+                            const o2 = oPts[(j + 1) % oPts.length];
+
+                            const distDir1 = Math.hypot(d1.x - o2.x, d1.y - o2.y) + Math.hypot(d2.x - o1.x, d2.y - o1.y);
+                            const distDir2 = Math.hypot(d1.x - o1.x, d1.y - o1.y) + Math.hypot(d2.x - o2.x, d2.y - o2.y);
+
+                            if (distDir1 / 2 < minDistance) {
+                                minDistance = distDir1 / 2;
+                                bestDelta = { x: o2.x - d1.x, y: o2.y - d1.y };
+                                foundSnap = true;
+                                activeSnaps = [{ p1: o1, p2: o2 }];
+                            } else if (distDir2 / 2 < minDistance) {
+                                minDistance = distDir2 / 2;
+                                bestDelta = { x: o1.x - d1.x, y: o1.y - d1.y };
+                                foundSnap = true;
+                                activeSnaps = [{ p1: o1, p2: o2 }];
+                            }
+                        }
+                    }
+                }
+            }
+
+            return foundSnap ? bestDelta : { x: 0, y: 0 };
+        }
+
+        function cutSelectedTilesIntoPiece() {
+            if (selectedTileIds.size === 0) {
+                showToast("請先點選想要切下的格子 (Please select tiles to cut)！");
+                return;
+            }
+
+            if (selectedTileIds.size === tiles.length) {
+                showToast("無法將所有格子切為單一拼塊，請保留部分棋盤！");
+                return;
+            }
+
+            const tilesToExtract = [];
+            for (let p of pieces) {
+                const remainingTiles = [];
+                for (let t of p.tiles) {
+                    if (selectedTileIds.has(t.id)) {
+                        tilesToExtract.push(t);
+                    } else {
+                        remainingTiles.push(t);
+                    }
+                }
+                p.tiles = remainingTiles;
+            }
+
+            pieces = pieces.filter(p => p.tiles.length > 0);
+
+            const newPieceId = Date.now();
+            const newPiece = {
+                id: newPieceId,
+                tiles: tilesToExtract,
+                x: 0,
+                y: 0,
+                rotation: 0
+            };
+            pieces.push(newPiece);
+            activePieceId = newPieceId;
+
+            selectedTileIds.clear();
+            updateFloatingCutBar();
+            document.getElementById('stat-total-pieces').innerText = pieces.length;
+            showToast(`已成功將 ${tilesToExtract.length} 個格子分割為新拼塊 (Piece created)！`);
+
+            checkDynamicConflicts();
+            render();
+        }
+
+        function randomSplitGrid() {
+            if (tiles.length <= 3) return;
+
+            pieces = [];
+            const unassigned = new Set(tiles.map(t => t.id));
+            const tileMap = new Map(tiles.map(t => [t.id, t]));
+
+            let pId = 1;
+            while (unassigned.size > 0) {
+                const startId = Array.from(unassigned)[0];
+                const pieceTiles = [tileMap.get(startId)];
+                unassigned.delete(startId);
+
+                const groupSize = Math.floor(Math.random() * 3) + 2; 
+                for (let k = 0; k < groupSize - 1 && unassigned.size > 0; k++) {
+                    const nextId = Array.from(unassigned)[0];
+                    pieceTiles.push(tileMap.get(nextId));
+                    unassigned.delete(nextId);
+                }
+
+                pieces.push({
+                    id: pId++,
+                    tiles: pieceTiles,
+                    x: (Math.random() - 0.5) * 40,
+                    y: (Math.random() - 0.5) * 40,
+                    rotation: 0
+                });
+            }
+
+            activePieceId = pieces[0].id;
+            document.getElementById('stat-total-pieces').innerText = pieces.length;
+            showToast(`已隨機將棋盤拆解為 ${pieces.length} 個拼塊！`);
+
+            checkDynamicConflicts();
+            render();
+        }
+
+        function rotateActivePiece(dir) {
+            if (activePieceId === null) return;
+            const p = pieces.find(p => p.id === activePieceId);
+            if (!p) return;
+
+            let angleStep = 90;
+            if (currentShape === 'triangle' || currentShape === 'hexagon') {
+                angleStep = 60;
+            }
+
+            p.rotation = (p.rotation + dir * angleStep) % 360;
+            checkDynamicConflicts();
+            render();
+        }
+
+        function resetAllPiecesToGrid() {
+            pieces = [{
+                id: 0,
+                tiles: [...tiles],
+                x: 0,
+                y: 0,
+                rotation: 0
+            }];
+            activePieceId = 0;
+            selectedTileIds.clear();
+            updateFloatingCutBar();
+            document.getElementById('stat-total-pieces').innerText = 1;
+            showToast("已重置合併為完整版面網格 (Grid Reset)！");
+            checkDynamicConflicts();
+            render();
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Draw Pieces and Tiles
+            for (let p of pieces) {
+                const isActive = (p.id === activePieceId && appMode === 'puzzle');
+
+                for (let t of p.tiles) {
+                    const geom = getTileWorldGeometry(t, p);
+                    const isTileSelected = selectedTileIds.has(t.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(geom.points[0].x, geom.points[0].y);
+                    for (let pt = 1; pt < geom.points.length; pt++) {
+                        ctx.lineTo(geom.points[pt].x, geom.points[pt].y);
+                    }
+                    ctx.closePath();
+
+                    // Fill color
+                    if (t.color !== UNCOLORED && t.color < numColorsAllowed) {
+                        ctx.fillStyle = PALETTE_COLORS[t.color].hex;
+                    } else {
+                        ctx.fillStyle = UNCOLORED_FILL;
+                    }
+                    ctx.fill();
+
+                    // Tile Selection Glow for Cutting
+                    if (isTileSelected) {
+                        ctx.fillStyle = "rgba(13, 148, 136, 0.35)";
+                        ctx.fill();
+
+                        ctx.strokeStyle = "#0d9488";
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([6, 4]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    } else {
+                        ctx.strokeStyle = isActive ? "#0284c7" : GRID_STROKE;
+                        ctx.lineWidth = isActive ? 2.5 : 1.25;
+                        ctx.stroke();
+                    }
+
+                    // Ring Labels for Hexagons
+                    if (currentShape === 'hexagon' && showRingLabels) {
+                        ctx.fillStyle = (t.color !== UNCOLORED && t.color < numColorsAllowed) ? "#ffffff" : "#334155";
+                        ctx.font = "bold 13px 'Fira Code', sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(t.ring, geom.center.x, geom.center.y);
+                    }
+
+                    // Hover Highlight Ring
+                    if (t.id === hoveredTileId) {
+                        ctx.fillStyle = "rgba(15, 23, 42, 0.15)";
+                        ctx.fill();
+                        ctx.strokeStyle = "#0f172a";
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // 2. Draw Magnetic Snap Edge Highlights
+            if (activeSnaps.length > 0) {
+                ctx.strokeStyle = "#d97706"; 
+                ctx.lineWidth = 5;
+                ctx.lineCap = "round";
+
+                for (let s of activeSnaps) {
+                    ctx.beginPath();
+                    ctx.moveTo(s.p1.x, s.p1.y);
+                    ctx.lineTo(s.p2.x, s.p2.y);
+                    ctx.stroke();
+                }
+            }
+
+            // 3. Draw Dynamic Conflict Edges
+            if (showConflictHighlight && conflicts.length > 0) {
+                ctx.strokeStyle = "#e11d48";
+                ctx.lineWidth = 4;
+                ctx.lineCap = "round";
+
+                for (let c of conflicts) {
+                    const pts = c.sharedPoints;
+                    if (pts && pts.length >= 2) {
+                        ctx.beginPath();
+                        ctx.moveTo(pts[0].x, pts[0].y);
+                        ctx.lineTo(pts[1].x, pts[1].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function pointInPolygon(px, py, polygon) {
+            let isInside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const xi = polygon[i].x, yi = polygon[i].y;
+                const xj = polygon[j].x, yj = polygon[j].y;
+
+                const intersect = ((yi > py) !== (yj > py)) &&
+                    (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+                if (intersect) isInside = !isInside;
+            }
+            return isInside;
+        }
+
+        function getPointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            }
+
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function findTileAndPieceAt(pos) {
+            for (let p of pieces) {
+                for (let t of p.tiles) {
+                    const geom = getTileWorldGeometry(t, p);
+                    if (pointInPolygon(pos.x, pos.y, geom.points)) {
+                        return { tile: t, piece: p };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function handlePointerDown(e) {
+            const pos = getPointerPos(e);
+            const found = findTileAndPieceAt(pos);
+
+            if (appMode === 'paint') {
+                if (found) {
+                    isDraggingPiece = true;
+                    paintTile(found.tile);
+                }
+            } else if (appMode === 'puzzle') {
+                if (found) {
+                    isDraggingPiece = true;
+                    activePieceId = found.piece.id;
+
+                    dragStartPos = pos;
+                    pieceStartOffset = { x: found.piece.x, y: found.piece.y };
+
+                    if (selectedTileIds.has(found.tile.id)) {
+                        selectedTileIds.delete(found.tile.id);
+                    } else {
+                        selectedTileIds.add(found.tile.id);
+                    }
+
+                    updateFloatingCutBar();
+                    render();
+                }
+            }
+        }
+
+        function handlePointerMove(e) {
+            const pos = getPointerPos(e);
+            const found = findTileAndPieceAt(pos);
+
+            hoveredTileId = found ? found.tile.id : null;
+
+            if (isDraggingPiece) {
+                if (appMode === 'paint' && found) {
+                    paintTile(found.tile);
+                } else if (appMode === 'puzzle' && activePieceId !== null) {
+                    const p = pieces.find(p => p.id === activePieceId);
+                    if (p) {
+                        const rawX = pieceStartOffset.x + (pos.x - dragStartPos.x);
+                        const rawY = pieceStartOffset.y + (pos.y - dragStartPos.y);
+
+                        p.x = rawX;
+                        p.y = rawY;
+
+                        const snapDelta = calculateMagneticSnap(p);
+                        p.x += snapDelta.x;
+                        p.y += snapDelta.y;
+
+                        checkDynamicConflicts();
+                        render();
+                    }
+                }
+            } else {
+                render();
+            }
+        }
+
+        function handlePointerUp() {
+            isDraggingPiece = false;
+            activeSnaps = [];
+            checkDynamicConflicts();
+            render();
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            handlePointerDown(e);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            handlePointerMove(e);
+        }
+
+        function paintTile(tile) {
+            const newColor = activeColorIndex === 'eraser' ? UNCOLORED : activeColorIndex;
+            if (tile.color !== newColor) {
+                tile.color = newColor;
+                checkDynamicConflicts();
+                render();
+            }
+        }
+
+        function clearColors() {
+            tiles.forEach(t => t.color = UNCOLORED);
+            checkDynamicConflicts();
+            render();
+        }
+
+        function randomFillColors() {
+            tiles.forEach(t => {
+                t.color = Math.floor(Math.random() * numColorsAllowed);
+            });
+            checkDynamicConflicts();
+            render();
+        }
+
+        function solveFourColor() {
+            const colorsCount = numColorsAllowed;
+
+            function solveRecursive(tileIdx) {
+                if (tileIdx >= tiles.length) return true;
+
+                for (let c = 0; c < colorsCount; c++) {
+                    tiles[tileIdx].color = c;
+                    checkDynamicConflicts();
+
+                    let hasDirectConflict = false;
+                    for (let conf of conflicts) {
+                        if (conf.t1 === tiles[tileIdx].id || conf.t2 === tiles[tileIdx].id) {
+                            hasDirectConflict = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasDirectConflict) {
+                        if (solveRecursive(tileIdx + 1)) return true;
+                    }
+
+                    tiles[tileIdx].color = UNCOLORED;
+                }
+                return false;
+            }
+
+            clearColors();
+
+            const success = solveRecursive(0);
+            if (success) {
+                checkDynamicConflicts();
+                render();
+                showToast("自動求解完成 (Solver completed)！");
+            } else {
+                showToast(`無法使用 ${colorsCount} 種顏色完成無衝突塗色！請切換至 4 種顏色。`);
+            }
+        }
+
+        // Clean PNG Export without text overlay
+        function exportCanvasImage() {
+            const exportCanvas = document.createElement('canvas');
+            const expCtx = exportCanvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            exportCanvas.width = w;
+            exportCanvas.height = h;
+
+            // Fill clean solid white background
+            expCtx.fillStyle = '#ffffff';
+            expCtx.fillRect(0, 0, w, h);
+
+            // Draw purely the tessellation canvas graphics WITHOUT text overlay
+            expCtx.drawImage(canvas, 0, 0);
+
+            const link = document.createElement('a');
+            link.download = `Tessellation-Pattern-${Date.now()}.png`;
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+
+            showToast("📸 密鋪圖檔已成功純淨匯出 (Exported PNG without text overlay)！");
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-slate-100 border border-slate-700 px-4 py-3 rounded-2xl shadow-xl z-50 text-xs flex items-center space-x-2 animate-bounce';
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-teal-400 text-base"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        // Splash Screen Transition Handlers
+        function enterLaboratory() {
+            const splash = document.getElementById('splash-screen');
+            if (!splash) return;
+            
+            // Add fade-out and slight zoom transition
+            splash.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
+            
+            setTimeout(() => {
+                splash.style.display = 'none';
+                resizeCanvasAndRebuild();
+            }, 700);
+        }
+
+        function reopenSplash() {
+            const splash = document.getElementById('splash-screen');
+            if (!splash) return;
+            
+            splash.style.display = 'flex';
+            // Force reflow
+            void splash.offsetWidth;
+            splash.classList.remove('opacity-0', 'scale-105', 'pointer-events-none');
+        }
+    </script>
+</body>
+</html>
